@@ -79,7 +79,4 @@ jobs:
           gh release create latest artifacts/* packaging/install-macos.sh \
             --target "$GITHUB_SHA" \
             --title "Berichtsheft-Suite (aktueller Stand)" \
-            --notes "Automatisch gebaut von Commit ${GITHUB_SHA::7}. Windows als .exe, Linux als berichtsheft-linux, macOS getrennt nach Apple Silicon (arm64) und Intel.
-
-macOS ohne Gatekeeper-Dialog, ein Befehl im Terminal:
-    curl -fsSL https://github.com/xSyntachs/berichtsheft/releases/latest/download/install-macos.sh | bash"
+            --notes "Automatisch gebaut von Commit ${GITHUB_SHA::7}. Windows .exe, Linux berichtsheft-linux, macOS getrennt nach arm64 (Apple Silicon) und intel. macOS ohne Gatekeeper-Dialog per Terminal-Einzeiler: curl -fsSL https://github.com/xSyntachs/berichtsheft/releases/latest/download/install-macos.sh | bash"
