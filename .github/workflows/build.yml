@@ -76,7 +76,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release delete latest --yes --cleanup-tag || true
-          gh release create latest artifacts/* \
+          gh release create latest artifacts/* packaging/install-macos.sh \
             --target "$GITHUB_SHA" \
             --title "Berichtsheft-Suite (aktueller Stand)" \
-            --notes "Automatisch gebaut von Commit ${GITHUB_SHA::7}. Windows als .exe, Linux als berichtsheft-linux, macOS getrennt nach Apple Silicon (arm64) und Intel."
+            --notes "Automatisch gebaut von Commit ${GITHUB_SHA::7}. Windows als .exe, Linux als berichtsheft-linux, macOS getrennt nach Apple Silicon (arm64) und Intel.
+
+macOS ohne Gatekeeper-Dialog, ein Befehl im Terminal:
+    curl -fsSL https://github.com/xSyntachs/berichtsheft/releases/latest/download/install-macos.sh | bash"
