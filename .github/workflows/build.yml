@@ -76,7 +76,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release delete latest --yes --cleanup-tag || true
-          gh release create latest artifacts/* packaging/install-*.sh packaging/install-*.bat \
+          gh release create latest artifacts/* Downloader/* \
             --target "$GITHUB_SHA" \
             --title "Berichtsheft-Suite (aktueller Stand)" \
             --notes "Automatisch gebaut von Commit ${GITHUB_SHA::7}. Zum Installieren das passende install-Skript laden, es zieht das Binary aus diesem Release ohne SmartScreen- oder Gatekeeper-Dialog. Windows install-windows.bat (Demo install-windows-demo.bat), Linux install-linux.sh, macOS install-macos.sh (arm64/intel automatisch), je auch als -demo. Die Binaries liegen hier ebenfalls direkt."
