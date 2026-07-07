@@ -1,0 +1,60 @@
+# Baut alle Release-Artefakte auf GitHub-Runnern, je Plattform nativ, weil
+# PyInstaller nicht cross-kompiliert. Windows ueber build.ps1, Linux und macOS
+# ueber build.sh (das erkennt die Plattform per uname). macOS zweimal, weil
+# Apple Silicon und Intel getrennte Binaries brauchen.
+name: build
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pwsh -File packaging/build.ps1   # Docker fehlt auf dem Runner, Linux-Teil skippt sauber
+      - uses: actions/upload-artifact@v4
+        with:
+          name: berichtsheft-windows
+          path: dist/*.exe
+
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: bash packaging/build.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: berichtsheft-linux
+          path: dist/berichtsheft-linux*
+
+  macos:
+    strategy:
+      matrix:
+        include:
+          - runner: macos-latest      # Apple Silicon (M1 und neuer)
+            arch: arm64
+          - runner: macos-15-intel    # Intel-Macs
+            arch: intel
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: bash packaging/build.sh
+      - name: Artefakte nach Architektur benennen
+        run: |
+          mv dist/berichtsheft-macos dist/berichtsheft-macos-${{ matrix.arch }}
+          mv dist/berichtsheft-macos-demo dist/berichtsheft-macos-demo-${{ matrix.arch }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: berichtsheft-macos-${{ matrix.arch }}
+          path: dist/berichtsheft-macos*
