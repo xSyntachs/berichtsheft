@@ -1,0 +1,17 @@
+# Klartext-Passwort und Tenant liegen hier drin, niemals versionieren.
+berichtsheft_*.config.json
+
+# Heruntergeladene Berichtshefte und Word-Hefte (personenbezogene Daten).
+Berichtsheft_Export/
+*.docx
+
+# Build-Artefakte.
+build/
+build.log
+dist/
+_buildcfg.py
+*.spec
+
+# Python.
+__pycache__/
+*.pyc

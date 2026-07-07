@@ -1,0 +1,10 @@
+# Laufzeit. Nach dem Installieren einmalig den Browser holen:
+#   playwright install chromium
+playwright>=1.40
+
+# Nur für den Word-Import (Menüpunkt "word"). Holt der Downloader bei Bedarf
+# auch selbst nach.
+python-docx>=1.1
+
+# Nur zum Bauen der EXE/Binaries (build.ps1), nicht zur Laufzeit nötig:
+#   pyinstaller
