@@ -58,3 +58,25 @@ jobs:
         with:
           name: berichtsheft-macos-${{ matrix.arch }}
           path: dist/berichtsheft-macos*
+
+  # Haengt alle Binaries als Release "latest" ans Repo. Der Tag wird je Lauf neu
+  # gesetzt, damit er immer auf den gebauten Commit zeigt.
+  release:
+    needs: [windows, linux, macos]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete latest --yes --cleanup-tag || true
+          gh release create latest artifacts/* \
+            --target "$GITHUB_SHA" \
+            --title "Berichtsheft-Suite (aktueller Stand)" \
+            --notes "Automatisch gebaut von Commit ${GITHUB_SHA::7}. Windows als .exe, Linux als berichtsheft-linux, macOS getrennt nach Apple Silicon (arm64) und Intel."
