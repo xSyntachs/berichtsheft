@@ -3,22 +3,22 @@
 
 Für Prüfer/Ausbilder. Meldet sich mit einem Prüfer-Account an, listet alle
 Nachwuchskräfte des Tenants auf, eine wird ausgewählt (oder alle), dann eine
-Massenaktion auf deren Wochen:
+Massenaktion auf deren Wochen. Alles über Menü-Auswahl, keine Flags.
 
-  - Alle annehmen        eingereichte Wochen (SUBMITTED) -> ANGENOMMEN
-  - Alle ablehnen        eingereichte Wochen (SUBMITTED) -> ABGELEHNT
-  - Annahme zurücknehmen angenommene Wochen (ACCEPTED)   -> ABGELEHNT
+  - Alle annehmen        eingereichte Wochen (SUBMITTED)          -> ANGENOMMEN
+  - Alle ablehnen        eingereichte Wochen (SUBMITTED)          -> ABGELEHNT
+  - Annahme zurücknehmen angenommene Wochen (ACCEPTED)            -> ABGELEHNT
+  - Queue leeren         offene + angenommene (SUBMITTED/ACCEPTED) -> ABGELEHNT
 
 Hinweis: Reviewte Wochen lassen sich serverseitig nicht mehr auf "Erstellend"
-zurücksetzen, ein echtes Löschen der Einträge ist deshalb nicht möglich. Das
-Zurücknehmen einer Annahme setzt die Woche auf "abgelehnt".
+zurücksetzen, ein echtes Löschen der Einträge ist deshalb nicht möglich. "Queue
+leeren" setzt alle offenen und angenommenen Wochen auf "abgelehnt", das ist die
+Ausbilder-seitige Art, den Stapel zu räumen.
 
-Start:
-    python berichtsheft_review.py
-    python berichtsheft_review.py --member "Neu" --aktion annehmen --ja
+Start über das Menü:
+    python src/berichtsheft.py     (Punkt 'ausbilder')
 """
 
-import argparse
 import getpass
 import json
 import sys
@@ -71,11 +71,13 @@ async ({ jobs }) => {
 
 BATCH_SIZE = 8
 
-# Aktion -> (Quellzustand, Zielzustand, Label)
+# Aktion -> (Quellzustaende, Zielzustand, Label). Quelle ist ein Tupel, damit
+# eine Aktion mehrere Ausgangszustaende einsammeln kann (Queue leeren).
 ACTIONS = {
-    "annehmen": ("SUBMITTED", "ACCEPTED", "eingereichte Wochen annehmen"),
-    "ablehnen": ("SUBMITTED", "DECLINED", "eingereichte Wochen ablehnen"),
-    "zuruecknehmen": ("ACCEPTED", "DECLINED", "Annahme zurücknehmen (angenommen -> abgelehnt)"),
+    "annehmen":      (("SUBMITTED",),            "ACCEPTED", "eingereichte Wochen annehmen"),
+    "ablehnen":      (("SUBMITTED",),            "DECLINED", "eingereichte Wochen ablehnen"),
+    "zuruecknehmen": (("ACCEPTED",),             "DECLINED", "Annahme zurücknehmen (angenommen -> abgelehnt)"),
+    "leeren":        (("SUBMITTED", "ACCEPTED"), "DECLINED", "Queue leeren, alle offenen und angenommenen ablehnen"),
 }
 
 
@@ -241,14 +243,19 @@ def pick_action():
         print("Ungültig, nochmal.")
 
 
-def apply_action(page, reports, action, reviewer_id):
-    src, dst, _ = ACTIONS[action]
-    jobs = [{"id": r["id"], "body": {"id": r["id"], "from": r["from"], "to": r["to"],
+def build_jobs(reports, srcs, dst, reviewer_id):
+    """PATCH-Jobs für jede Woche, deren Zustand in srcs liegt, Ziel dst."""
+    return [{"id": r["id"], "body": {"id": r["id"], "from": r["from"], "to": r["to"],
                                      "type": r["type"], "state": dst,
                                      "reviewer_id": r.get("reviewer_id") or reviewer_id}}
-            for r in reports if r["state"] == src]
+            for r in reports if r["state"] in srcs]
+
+
+def apply_action(page, reports, action, reviewer_id):
+    srcs, dst, _ = ACTIONS[action]
+    jobs = build_jobs(reports, srcs, dst, reviewer_id)
     if not jobs:
-        print(f"Keine Wochen im Zustand {src}.")
+        print(f"Keine Wochen in {'/'.join(srcs)}.")
         return
     done, failed = 0, 0
     for start in range(0, len(jobs), BATCH_SIZE):
@@ -263,16 +270,9 @@ def apply_action(page, reports, action, reviewer_id):
 
 
 def main():
-    ap = argparse.ArgumentParser(description="apprentio-Wochen als Ausbilder annehmen/ablehnen")
-    ap.add_argument("--tenant", help="apprentio-Adresse oder Subdomain (sonst Abfrage/Config)")
-    ap.add_argument("--member", help="Name(steil) der Nachwuchskraft, sonst Auswahl. 'alle' fuer alle")
-    ap.add_argument("--aktion", choices=list(ACTIONS), help="annehmen, ablehnen oder zuruecknehmen")
-    ap.add_argument("--ja", action="store_true", help="ohne Rueckfrage ausfuehren")
-    args = ap.parse_args()
-
     print(BANNER)
     ensure_chromium()
-    tenant = resolve_tenant(args.tenant)
+    tenant = resolve_tenant(None)
     creds = ask_credentials()
 
     from playwright.sync_api import sync_playwright
@@ -288,34 +288,22 @@ def main():
             browser.close()
             return
 
-        if args.member and args.member.lower() == "alle":
-            target = None
-        elif args.member:
-            hit = [m for m in ms if args.member.lower() in m["full_name"].lower()]
-            if len(hit) != 1:
-                print(f"'{args.member}' passt auf {len(hit)} Mitglieder, bitte eindeutiger.")
-                browser.close()
-                return
-            target = hit[0]
-        else:
-            target = pick_member(ms)
-
+        target = pick_member(ms)
         chosen = ms if target is None else [target]
-        action = args.aktion or pick_action()
-        src, dst, label = ACTIONS[action]
+        action = pick_action()
+        srcs, dst, label = ACTIONS[action]
 
-        reports = [r for m in chosen for r in member_reports(page, m["id"]) if r["state"] == src]
+        reports = [r for m in chosen for r in member_reports(page, m["id"]) if r["state"] in srcs]
         who = "ALLE Mitglieder" if target is None else target["full_name"]
         print(f"\n{label} fuer {who}: {len(reports)} Wochen betroffen.")
         if not reports:
             browser.close()
             return
 
-        if not args.ja:
-            if input("Ausfuehren? [ja/nein]: ").strip().lower() != "ja":
-                print("Abgebrochen.")
-                browser.close()
-                return
+        if input("Ausfuehren? [ja/nein]: ").strip().lower() != "ja":
+            print("Abgebrochen.")
+            browser.close()
+            return
 
         apply_action(page, reports, action, reviewer_id)
         browser.close()
