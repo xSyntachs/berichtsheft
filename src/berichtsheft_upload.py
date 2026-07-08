@@ -22,8 +22,9 @@ füllt das Skript selbst aus. Jeder Lauf startet mit frischem Browser.
 Setup einmalig:  pip install playwright  &&  playwright install chromium
 
 Nach dem Upload werden die befüllten Wochen automatisch eingereicht (Status
-SUBMITTED). Der Prüfer wird bei genau einem möglichen Kandidaten selbst
-gewählt, sonst per --pruefer eingegrenzt. Einreichen ist ENDGÜLTIG, davor
+SUBMITTED), abgelehnte Wochen (DECLINED) werden dabei erneut vorgelegt. Der
+Ausbilder wird bei genau einem möglichen Kandidaten selbst gewählt, sonst
+per Menü ausgewählt (--pruefer grenzt vor). Einreichen ist ENDGÜLTIG, davor
 kommt eine Sicherheitsabfrage (mit --ja überspringbar, mit --kein-einreichen
 ganz aus).
 
@@ -366,29 +367,52 @@ def iter_entries(week):
                            e.get("text"), e.get("dauer"), _quali_ids(e))
 
 
+def pick_reviewer(cands):
+    print("\nAusbilder:in wählen (gilt für alle Wochen dieses Laufs):")
+    for i, c in enumerate(cands, 1):
+        print(f"  [{i}] {c.get('full_name')}")
+    while True:
+        w = input("Auswahl: ").strip()
+        if w.isdigit() and 1 <= int(w) <= len(cands):
+            return cands[int(w) - 1]
+        low = w.lower()
+        hit = [c for c in cands if low and low in (c.get("full_name") or "").lower()]
+        if len(hit) == 1:
+            return hit[0]
+        print("Ungültig, Nummer oder eindeutiger Namensteil.")
+
+
 def submit_reports(page, pruefer):
-    """Reicht alle befüllten CREATING-Wochen ein (Status SUBMITTED). Achtung,
-    das ist endgültig, ein eingereichter Report lässt sich nur vom Prüfer per
-    Ablehnen wieder öffnen. Der Prüfer wird pro Report aus den möglichen
-    Prüfern per Namensteil gewählt, bei genau einem Kandidaten automatisch."""
+    """Reicht alle befüllten Wochen ein (Status SUBMITTED), offene (CREATING)
+    wie abgelehnte (DECLINED, erneutes Vorlegen). Achtung, das ist endgültig,
+    ein eingereichter Report lässt sich nur vom Prüfer per Ablehnen wieder
+    öffnen. Der Ausbilder wird einmal pro Lauf bestimmt: bei genau einem
+    Kandidaten automatisch, sonst per Menü (--pruefer grenzt vor)."""
     reports = [r["data"] for r in
                api(page, "GET", "/api/v1/reporting/reports?page=1&page_size=1000")["body"]["data"]]
-    offen = [r for r in reports if r["state"] == "CREATING" and r["activities_count"] > 0]
+    offen = [r for r in reports if r["state"] in ("CREATING", "DECLINED") and r["activities_count"] > 0]
     if not offen:
         print("Keine offenen Wochen zum Einreichen.")
         return
-    done, errors, no_reviewer = 0, [], []
+    done, errors, no_reviewer, reviewer = 0, [], [], None
     for i, r in enumerate(offen, 1):
         cands = [c["data"] for c in api(page, "GET",
                  "/api/v1/users-location-independent-simple?"
                  f"f%5Bpossible_reviewers_for_report%5D={r['id']}")["body"]["data"]]
         if pruefer:
             cands = [c for c in cands if pruefer.lower() in (c.get("full_name") or "").lower()]
-        if len(cands) != 1:
+        if reviewer and any(c["id"] == reviewer["id"] for c in cands):
+            cand = reviewer
+        elif len(cands) == 1:
+            cand = cands[0]
+        elif cands:
+            cand = pick_reviewer(cands)
+        else:
             no_reviewer.append(r["from"])
             continue
+        reviewer = cand
         body = {"id": r["id"], "from": r["from"], "to": r["to"], "type": r["type"],
-                "state": "SUBMITTED", "reviewer_id": cands[0]["id"]}
+                "state": "SUBMITTED", "reviewer_id": cand["id"]}
         st = api(page, "PATCH", f"/api/v1/reporting/reports/{r['id']}", body)["status"]
         if st == 200:
             done += 1
@@ -397,8 +421,8 @@ def submit_reports(page, pruefer):
         progress(i, len(offen), "Einreich")
     print(f"{done} Wochen eingereicht" + (f", {len(errors)} fehlgeschlagen" if errors else "") + ".")
     if no_reviewer:
-        print(f"{len(no_reviewer)} Wochen ohne eindeutigen Prüfer übersprungen "
-              "(mit --pruefer <Name> eingrenzen): " + ", ".join(no_reviewer[:6]))
+        print(f"{len(no_reviewer)} Wochen ohne möglichen Ausbilder übersprungen "
+              "(--pruefer <Name> prüfen): " + ", ".join(no_reviewer[:6]))
 
 
 def main():
