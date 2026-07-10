@@ -64,59 +64,59 @@ story = [
     UL("Doppelklicke download.bat.",
        "Wenn Windows nachfragt, bestätige mit Ausführen."),
     P("Mac und Linux", lead),
-    P("Öffne ein Terminal und führe diese drei Befehle aus:"),
+    P("Öffne ein Terminal und führe diese drei Befehle aus."),
     Preformatted("cd Downloads\nchmod +x download.sh\n./download.sh", code),
     P("Wähle die Version <b>Normal</b>, dafür einfach Enter drücken (die "
       "<i>Demo</i> ist nur zum Testen)."),
     P("Das Programm installiert sich in den Ordner Berichtsheft-Suite in "
       "deinem Benutzerordner und öffnet sich danach von selbst. Beim ersten "
-      "Start lädt es einmalig einen Browser nach — das dauert ein paar "
+      "Start lädt es einmalig einen Browser nach, das dauert ein paar "
       "Minuten."),
 
     P("2. Berichtsheft holen", h2),
-    P("Weg A — von der IHK-Seite", lead),
-    P("Führst du dein Heft online bei der IHK:"),
+    P("Weg A, von der IHK-Seite", lead),
+    P("Führst du dein Heft online bei der IHK."),
     UL("Im Programm den Punkt <b>download</b> wählen.",
        "IHK-E-Mail eingeben.",
        "IHK-Passwort eingeben (die Eingabe bleibt unsichtbar).",
        "Stadt deiner IHK eingeben.",
-       "Warten, bis sich der Browser öffnet und alles einsammelt — nichts "
+       "Warten, bis sich der Browser öffnet und alles einsammelt, nichts "
        "anklicken."),
     P("Dein Passwort wird nirgends gespeichert.", note),
-    P("Weg B — aus einer Word-Datei", lead),
-    P("Führst du dein Heft in Word:"),
+    P("Weg B, aus einer Word-Datei", lead),
+    P("Führst du dein Heft in Word."),
     UL("Die Word-Datei in den Ordner Berichtsheft-Suite legen (den hat "
        "Schritt 1 angelegt).",
        "Im Programm den Punkt <b>word</b> wählen."),
-    P("Die Datei muss so aufgebaut sein:", lead),
+    P("Die Datei muss so aufgebaut sein.", lead),
     UL("Jede Woche beginnt mit einer Zeile mit dem Wort Ausbildungswoche und "
        "dem Zeitraum.",
        "Darunter kommt jede Tätigkeit in eine eigene Zeile."),
-    Preformatted("Erste Ausbildungswoche (04.08.–10.08.2025)\n"
+    Preformatted("Erste Ausbildungswoche (04.08.-10.08.2025)\n"
                  "Arbeitsplatz eingerichtet und Team kennengelernt\n"
                  "Grundlagen der Firmenprodukte gelernt\n"
                  "Berufsschule Lernfeld 1, Netzwerke und Hardware\n"
                  "\n"
-                 "Zweite Ausbildungswoche (11.08.–17.08.2025)\n"
+                 "Zweite Ausbildungswoche (11.08.-17.08.2025)\n"
                  "Erste kleine Aufgaben im Kundenprojekt\n"
                  "Berufsschule Lernfeld 2, Programmierung", code),
     P("Zeilen, die mit <i>Berufsschule</i> oder <i>Lernfeld</i> beginnen, "
       "landen automatisch bei der Schule, alle anderen beim Betrieb."),
-    P("Stunden musst du nicht angeben — es werden pauschal 8 Stunden pro Tag "
+    P("Stunden musst du nicht angeben, es werden pauschal 8 Stunden pro Tag "
       "eingetragen.", note),
 
     P("3. In apprentio eintragen", h2),
     UL("Im Programm den Punkt <b>upload</b> wählen.",
-       "Beim ersten Mal: <b>communardo</b> eingeben (für "
-       "communardo.apprentio.de) — das merkt sich das Programm.",
+       "Beim ersten Mal <b>communardo</b> eingeben (für "
+       "communardo.apprentio.de), das merkt sich das Programm.",
        "E-Mail und Passwort deines eigenen apprentio-Zugangs eingeben.",
        "Das Programm trägt alle Tätigkeiten in den richtigen Wochen ein und "
        "fragt am Ende, ob es die Wochen beim Prüfer einreichen soll."),
-    P("<b>Achtung: Einreichen ist endgültig.</b><br/>"
+    P("<b>Achtung, Einreichen ist endgültig.</b><br/>"
       "Eine eingereichte Woche kann nur dein Prüfer wieder öffnen.<br/>"
       "Willst du erst in apprentio nachsehen, antworte mit nein und lass das "
       "Programm später einfach nochmal laufen.<br/>"
-      "Wiederholen ist immer sicher — was schon eingetragen ist, wird "
+      "Wiederholen ist immer sicher, was schon eingetragen ist, wird "
       "übersprungen.", warn),
 
     P("4. Wenn etwas nicht klappt", h2),
