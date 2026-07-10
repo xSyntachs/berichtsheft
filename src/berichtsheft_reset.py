@@ -93,8 +93,8 @@ def ensure_chromium():
         import os
         from playwright._impl._driver import compute_driver_executable, get_driver_env
         # Stabiler Browser-Cache. Onefile entpackt jeden Start in ein neues
-        # _MEI-Temp, ein dorthin installierter Chromium waere beim naechsten Lauf
-        # weg. Install und spaeterer Launch muessen denselben festen Pfad nutzen.
+        # _MEI-Temp, ein dorthin installierter Chromium wäre beim nächsten Lauf
+        # weg. Install und späterer Launch müssen denselben festen Pfad nutzen.
         cache = str((Path(os.environ.get("LOCALAPPDATA") or Path.home() / ".cache")) / "ms-playwright")
         os.environ["PLAYWRIGHT_BROWSERS_PATH"] = cache
         drv = compute_driver_executable()

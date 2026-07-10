@@ -71,8 +71,8 @@ async ({ jobs }) => {
 
 BATCH_SIZE = 8
 
-# Aktion -> (Quellzustaende, Zielzustand, Label). Quelle ist ein Tupel, damit
-# eine Aktion mehrere Ausgangszustaende einsammeln kann (Queue leeren).
+# Aktion -> (Quellzustände, Zielzustand, Label). Quelle ist ein Tupel, damit
+# eine Aktion mehrere Ausgangszustände einsammeln kann (Queue leeren).
 ACTIONS = {
     "annehmen":      (("SUBMITTED",),            "ACCEPTED", "eingereichte Wochen annehmen"),
     "ablehnen":      (("SUBMITTED",),            "DECLINED", "eingereichte Wochen ablehnen"),
@@ -295,12 +295,12 @@ def main():
 
         reports = [r for m in chosen for r in member_reports(page, m["id"]) if r["state"] in srcs]
         who = "ALLE Mitglieder" if target is None else target["full_name"]
-        print(f"\n{label} fuer {who}: {len(reports)} Wochen betroffen.")
+        print(f"\n{label} für {who}: {len(reports)} Wochen betroffen.")
         if not reports:
             browser.close()
             return
 
-        if input("Ausfuehren? [ja/nein]: ").strip().lower() != "ja":
+        if input("Ausführen? [ja/nein]: ").strip().lower() != "ja":
             print("Abgebrochen.")
             browser.close()
             return

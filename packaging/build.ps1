@@ -11,15 +11,15 @@ $ErrorActionPreference = "Stop"
 Set-Location (Split-Path -Parent $PSScriptRoot)   # ins Repo-Root, dist/ und build/ landen dort
 
 python -m pip install --quiet --disable-pip-version-check playwright pyinstaller
-# enum34 wuerde PyInstaller brechen, ist auf Python 3.13 aber nie installiert.
+# enum34 würde PyInstaller brechen, ist auf Python 3.13 aber nie installiert.
 # Vorsichtshalber still entfernen. Eigener Scope mit SilentlyContinue plus *>$null,
 # sonst macht ErrorActionPreference=Stop aus der stderr-Warnung einen Fehler.
 & { $ErrorActionPreference = 'SilentlyContinue'; python -m pip uninstall -y enum34 *> $null }
 
 # --icon und --version-file sind Windows-PE-Sachen, nur hier. Kein UPX, das
-# erhoeht die Fehlalarm-Quote. --paths src, damit PyInstaller die Geschwister-Module
-# findet. Kein --specpath, das wuerde die relativen icon/version-Pfade in den
-# Spec-Ordner verbiegen. Die .spec landen im Root und werden am Ende geraeumt.
+# erhöht die Fehlalarm-Quote. --paths src, damit PyInstaller die Geschwister-Module
+# findet. Kein --specpath, das würde die relativen icon/version-Pfade in den
+# Spec-Ordner verbiegen. Die .spec landen im Root und werden am Ende geräumt.
 $pyi = "--noconfirm --clean --onefile --noupx --paths src --collect-all playwright --hidden-import playwright.sync_api --icon packaging/icon.ico --version-file packaging/version.txt"
 
 Write-Host "== Windows Release ==" -ForegroundColor Cyan
@@ -44,10 +44,10 @@ if ($dockerOk) {
          "echo 'DEMO = True'  > src/_buildcfg.py && pyinstaller --noconfirm --clean --onefile --paths src --collect-all playwright --hidden-import playwright.sync_api --name berichtsheft-linux-demo src/berichtsheft.py"
     & { $ErrorActionPreference = 'Continue'; docker run --rm -v "${PWD}:/src" -w /src python:3.13 bash -c $b }
 } else {
-    Write-Host "Docker laeuft nicht, Linux-Binaries uebersprungen. Docker Desktop starten und erneut ausfuehren." -ForegroundColor Yellow
+    Write-Host "Docker läuft nicht, Linux-Binaries übersprungen. Docker Desktop starten und erneut ausführen." -ForegroundColor Yellow
 }
 
 Remove-Item src\_buildcfg.py -ErrorAction SilentlyContinue   # Quelllauf zeigt dann wieder den Reset (DEMO-Default)
-Remove-Item *.spec -ErrorAction SilentlyContinue             # generierte PyInstaller-Specs aus dem Root raeumen
+Remove-Item *.spec -ErrorAction SilentlyContinue             # generierte PyInstaller-Specs aus dem Root räumen
 Write-Host "Fertig. Artefakte in dist\" -ForegroundColor Green
 Write-Host "macOS: nicht von Windows baubar (PyInstaller cross-kompiliert nicht). Auf einem Mac packaging/build.sh nutzen." -ForegroundColor Yellow
