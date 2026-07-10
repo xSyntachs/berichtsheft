@@ -71,7 +71,7 @@ Beim Upload sorgt ein normalisierter Vergleichsschlüssel für den Dedup. appren
 
 ## Zeiterfassung
 
-Freitext-Einträge liefern oft `PT0S` als Dauer. Der Uploader füllt Tage ohne echte Stunden über `apply_default_hours` auf acht Stunden auf, verteilt auf die Einträge des Tages. Ein reines Wochenheft, dessen Text nur im `wochenEintrag` steht, verteilt `iter_entries` auf die anwesenden Werktage, weil apprentio tagesbasiert arbeitet. Der Schalter `--stunden 0` lässt die echten Werte unangetastet.
+Freitext-Einträge liefern oft `PT0S` als Dauer. Der Uploader füllt Tage ohne echte Stunden über `apply_default_hours` auf acht Stunden auf, verteilt auf die Einträge des Tages. Ein reines Wochenheft, dessen Text nur im `wochenEintrag` steht, verteilt `iter_entries` auf die anwesenden Werktage, weil apprentio tagesbasiert arbeitet. Der Config-Key `stunden_pro_tag` mit dem Wert `0` lässt die echten Werte unangetastet.
 
 ## Reviewer-Zustandsmaschine
 

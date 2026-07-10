@@ -28,7 +28,7 @@ Die **Berichtsheft-Inhalte** landen als PDF und JSON in einem Export-Ordner nebe
 |---|---|---|
 | Klartext-Passwort in der Config | Passwort wird standardmäßig nicht gespeichert, nur E-Mail. `.gitignore` schließt alle `*.config.json` aus | Feld `password` nur setzen, wenn der Rechner vertrauenswürdig ist, Datei niemals teilen |
 | Personenbezogene Daten im Export | liegen ausschließlich lokal, `.gitignore` schließt `Berichtsheft_Export/` aus | Ordner nach Gebrauch löschen oder geschützt ablegen, nicht in ein Repository, nicht in eine Cloud ohne Not |
-| Endgültiges Einreichen im Produktivsystem | Sicherheitsabfrage vor dem Einreichen, `--kein-einreichen` schaltet es ganz aus, `--ja` überspringt nur bewusst die Abfrage | vor dem ersten echten Lauf mit einem Testkonto oder wenigen Wochen prüfen |
+| Endgültiges Einreichen im Produktivsystem | Sicherheitsabfrage vor dem Einreichen, nein lässt die Wochen als Entwurf stehen | vor dem ersten echten Lauf mit einem Testkonto oder wenigen Wochen prüfen |
 | Doppelte oder falsch gemappte Einträge | Dedup über normalisierten Schlüssel verhindert Doppelanlage | falsche Wochenzuordnung fängt der Dedup nicht ab, Ergebnis stichprobenartig prüfen |
 | Account-Sperre durch Fehllogins | der IHK-Login begrenzt die Versuche, damit ein Tippfehler nicht in eine Sperre läuft | korrekte Zugangsdaten eingeben |
 

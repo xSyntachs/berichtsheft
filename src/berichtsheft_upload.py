@@ -24,20 +24,13 @@ Setup einmalig:  pip install playwright  &&  playwright install chromium
 Nach dem Upload werden die befüllten Wochen automatisch eingereicht (Status
 SUBMITTED), abgelehnte Wochen (DECLINED) werden dabei erneut vorgelegt. Der
 Ausbilder wird bei genau einem möglichen Kandidaten selbst gewählt, sonst
-per Menü ausgewählt (--pruefer grenzt vor). Einreichen ist ENDGÜLTIG, davor
-kommt eine Sicherheitsabfrage (mit --ja überspringbar, mit --kein-einreichen
-ganz aus).
+per Menü ausgewählt. Einreichen ist ENDGÜLTIG, davor kommt eine
+Sicherheitsabfrage.
 
 Start:
-    python berichtsheft_upload.py                     # neuester Export, Upload + Einreichen
-    python berichtsheft_upload.py --kein-einreichen   # nur hochladen, nicht einreichen
-    python berichtsheft_upload.py --ja                # ohne Sicherheitsabfrage einreichen
-    python berichtsheft_upload.py --pruefer "Rumke"   # Prüfer eingrenzen
-    python berichtsheft_upload.py --ordner "C:\\...\\Berichtsheft_2026-07-03_12-00-00"
-    python berichtsheft_upload.py --tenant https://xsyntachs.apprentio.de
+    python berichtsheft_upload.py    # neuester Export, Upload + Einreichen, keine Flags
 """
 
-import argparse
 import getpass
 import html
 import json
@@ -137,14 +130,11 @@ def progress(done, total, label):
     print(f"\r{label} [{bar}] {done}/{total}", end=end, flush=True)
 
 
-def find_export(arg):
-    if arg:
-        p = Path(arg)
-    else:
-        runs = sorted((HERE / "Berichtsheft_Export").glob("Berichtsheft_*"))
-        if not runs:
-            raise SystemExit("Kein Export-Ordner gefunden. Erst berichtsheft_download.py laufen lassen.")
-        p = runs[-1]
+def find_export():
+    runs = sorted((HERE / "Berichtsheft_Export").glob("Berichtsheft_*"))
+    if not runs:
+        raise SystemExit("Kein Export-Ordner gefunden. Erst berichtsheft_download.py laufen lassen.")
+    p = runs[-1]
     j = p / "berichtsheft.json"
     if not j.exists():
         raise SystemExit(f"{j} existiert nicht.")
@@ -162,8 +152,8 @@ def ensure_chromium():
         import os
         from playwright._impl._driver import compute_driver_executable, get_driver_env
         # Stabiler Browser-Cache. Onefile entpackt jeden Start in ein neues
-        # _MEI-Temp, ein dorthin installierter Chromium waere beim naechsten Lauf
-        # weg. Install und spaeterer Launch muessen denselben festen Pfad nutzen.
+        # _MEI-Temp, ein dorthin installierter Chromium wäre beim nächsten Lauf
+        # weg. Install und späterer Launch müssen denselben festen Pfad nutzen.
         cache = str((Path(os.environ.get("LOCALAPPDATA") or Path.home() / ".cache")) / "ms-playwright")
         os.environ["PLAYWRIGHT_BROWSERS_PATH"] = cache
         drv = compute_driver_executable()
@@ -211,9 +201,9 @@ def normalize_tenant(v):
     return "https://" + (v if "." in v else v + ".apprentio.de")
 
 
-def resolve_tenant(arg):
+def resolve_tenant():
     cfg = load_config()
-    tenant = arg or cfg.get("tenant")
+    tenant = cfg.get("tenant")
     if not tenant:
         tenant = input("apprentio-Adresse (z.B. firma oder https://firma.apprentio.de): ")
     tenant = normalize_tenant(tenant)
@@ -382,12 +372,12 @@ def pick_reviewer(cands):
         print("Ungültig, Nummer oder eindeutiger Namensteil.")
 
 
-def submit_reports(page, pruefer):
+def submit_reports(page):
     """Reicht alle befüllten Wochen ein (Status SUBMITTED), offene (CREATING)
     wie abgelehnte (DECLINED, erneutes Vorlegen). Achtung, das ist endgültig,
     ein eingereichter Report lässt sich nur vom Prüfer per Ablehnen wieder
     öffnen. Der Ausbilder wird einmal pro Lauf bestimmt: bei genau einem
-    Kandidaten automatisch, sonst per Menü (--pruefer grenzt vor)."""
+    Kandidaten automatisch, sonst per Menü."""
     reports = [r["data"] for r in
                api(page, "GET", "/api/v1/reporting/reports?page=1&page_size=1000")["body"]["data"]]
     offen = [r for r in reports if r["state"] in ("CREATING", "DECLINED") and r["activities_count"] > 0]
@@ -399,8 +389,6 @@ def submit_reports(page, pruefer):
         cands = [c["data"] for c in api(page, "GET",
                  "/api/v1/users-location-independent-simple?"
                  f"f%5Bpossible_reviewers_for_report%5D={r['id']}")["body"]["data"]]
-        if pruefer:
-            cands = [c for c in cands if pruefer.lower() in (c.get("full_name") or "").lower()]
         if reviewer and any(c["id"] == reviewer["id"] for c in cands):
             cand = reviewer
         elif len(cands) == 1:
@@ -421,32 +409,20 @@ def submit_reports(page, pruefer):
         progress(i, len(offen), "Einreich")
     print(f"{done} Wochen eingereicht" + (f", {len(errors)} fehlgeschlagen" if errors else "") + ".")
     if no_reviewer:
-        print(f"{len(no_reviewer)} Wochen ohne möglichen Ausbilder übersprungen "
-              "(--pruefer <Name> prüfen): " + ", ".join(no_reviewer[:6]))
+        print(f"{len(no_reviewer)} Wochen ohne möglichen Ausbilder übersprungen: "
+              + ", ".join(no_reviewer[:6]))
 
 
 def main():
-    ap = argparse.ArgumentParser(description="IHK-Berichtsheft nach apprentio hochladen")
-    ap.add_argument("--ordner", help="Export-Ordner mit berichtsheft.json (Default: neuester)")
-    ap.add_argument("--tenant", help="apprentio-Adresse oder Subdomain (sonst Abfrage/Config)")
-    ap.add_argument("--kein-einreichen", dest="kein_einreichen", action="store_true",
-                    help="nur hochladen, NICHT einreichen (Wochen bleiben auf 'Erstellend')")
-    ap.add_argument("--ja", action="store_true",
-                    help="Sicherheitsabfrage vor dem Einreichen überspringen")
-    ap.add_argument("--pruefer", help="Name(steil) des Prüfers, falls mehrere möglich sind")
-    ap.add_argument("--stunden", type=int,
-                    help="Std/Tag für Tage ohne echte Dauer (Default 8, 0 = faithful lassen)")
-    args = ap.parse_args()
-
     print(BANNER)
-    export_dir, data = find_export(args.ordner)
+    export_dir, data = find_export()
     weeks = data["wochen"]
     quali_name = {q["positionsId"]: q["qbezeichnung"]
                   for q in data["qualifikationen"].get("qualifikationen", [])}
     print(f"Export: {export_dir}  ({len(weeks)} Wochen)")
 
-    tenant = resolve_tenant(args.tenant)
-    std_pro_tag = args.stunden if args.stunden is not None else load_config().get("stunden_pro_tag", 8)
+    tenant = resolve_tenant()
+    std_pro_tag = load_config().get("stunden_pro_tag", 8)
     print(f"Stunden pro Tag ohne echte Dauer: {std_pro_tag}"
           + (" (faithful, keine Auffüllung)" if std_pro_tag <= 0 else ""))
     ensure_chromium()
@@ -534,15 +510,12 @@ def main():
 
         print(f"Fertig. {len(todo) - len(errors)} angelegt, {dupes} übersprungen.")
 
-        if args.kein_einreichen:
-            print("\n--kein-einreichen gesetzt, Wochen bleiben auf 'Erstellend'.")
+        print("\nEinreichen ist ENDGÜLTIG, eingereichte Wochen kann nur der "
+              "Prüfer per Ablehnen wieder öffnen.")
+        if input("Alle befüllten Wochen jetzt einreichen? [ja/nein]: ").strip().lower() == "ja":
+            submit_reports(page)
         else:
-            print("\nEinreichen läuft jetzt automatisch. Das ist ENDGÜLTIG, eingereichte "
-                  "Wochen kann nur der Prüfer per Ablehnen wieder öffnen.")
-            if args.ja or input("Alle befüllten Wochen jetzt einreichen? [ja/nein]: ").strip().lower() == "ja":
-                submit_reports(page, args.pruefer)
-            else:
-                print("Einreichen übersprungen (--kein-einreichen fürs nächste Mal).")
+            print("Einreichen übersprungen, Wochen bleiben auf 'Erstellend'.")
 
         browser.close()
     if skipped_weeks:

@@ -23,12 +23,11 @@ Was möchtest du tun?
 
 Der Demo-Build zeigt zusätzlich `[3] reset`.
 
-Wer die Optionen direkt setzen will, ruft im Terminal auf.
+Wer den Menüpunkt direkt starten will, ruft im Terminal auf. Download und Upload kennen keine Flags, alles Weitere fragt das Programm interaktiv ab.
 
 ```
 berichtsheft.exe download
-berichtsheft.exe upload --ja
-berichtsheft.exe upload --kein-einreichen
+berichtsheft.exe upload
 berichtsheft.exe reset --ja
 ```
 

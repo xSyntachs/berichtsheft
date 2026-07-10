@@ -16,12 +16,9 @@ Setup einmalig:
     playwright install chromium
 
 Start:
-    python berichtsheft_download.py                 # kompletter Ausbildungszeitraum
-    python berichtsheft_download.py --ab 2024-08-01 # erst ab diesem Datum
-    python berichtsheft_download.py --out D:\\Export # anderer Ausgabeordner
+    python berichtsheft_download.py    # kompletter Ausbildungszeitraum, keine Flags
 """
 
-import argparse
 import getpass
 import json
 import re
@@ -56,7 +53,7 @@ ENUM_LABEL = {
     "ANWESEND": "anwesend", "ABWESEND": "abwesend", "KRANK": "krank",
     "URLAUB": "Urlaub", "FEIERTAG": "Feiertag", "FREI": "frei",
     "BETRIEB": "Betrieb", "BERUFSSCHULE": "Berufsschule", "SCHULE": "Schule",
-    "UEBERBETRIEBLICH": "Ueberbetrieblich", "HOMEOFFICE": "Homeoffice",
+    "UEBERBETRIEBLICH": "Überbetrieblich", "HOMEOFFICE": "Homeoffice",
     "FREIGEGEBEN": "Freigegeben", "EINGEREICHT": "Eingereicht",
     "IN_BEARBEITUNG": "In Bearbeitung", "OFFEN": "Offen", "ABGELEHNT": "Abgelehnt",
 }
@@ -248,8 +245,8 @@ def ensure_chromium():
         import os
         from playwright._impl._driver import compute_driver_executable, get_driver_env
         # Stabiler Browser-Cache. Onefile entpackt jeden Start in ein neues
-        # _MEI-Temp, ein dorthin installierter Chromium waere beim naechsten Lauf
-        # weg. Install und spaeterer Launch muessen denselben festen Pfad nutzen.
+        # _MEI-Temp, ein dorthin installierter Chromium wäre beim nächsten Lauf
+        # weg. Install und späterer Launch müssen denselben festen Pfad nutzen.
         cache = str((Path(os.environ.get("LOCALAPPDATA") or Path.home() / ".cache")) / "ms-playwright")
         os.environ["PLAYWRIGHT_BROWSERS_PATH"] = cache
         drv = compute_driver_executable()
@@ -591,11 +588,11 @@ def week_document(meta, week, qmap):
 
 
 # -- Import aus einem Word-Berichtsheft ------------------------------------
-# Alternative Quelle zum IHK-Download, falls das Heft in einer .docx gefuehrt
+# Alternative Quelle zum IHK-Download, falls das Heft in einer .docx geführt
 # wird. Format: je Woche ein Absatz "N. Ausbildungswoche (DD.MM.-DD.MM.YYYY)",
-# darunter je Taetigkeit ein Absatz. Ohne Tage und ohne Stunden, das ist der
-# Wochenheft-Fall. Die Taetigkeiten werden reihum auf Mo-Fr verteilt, die
-# Stunden fuellt der Uploader spaeter auf (apply_default_hours).
+# darunter je Tätigkeit ein Absatz. Ohne Tage und ohne Stunden, das ist der
+# Wochenheft-Fall. Die Tätigkeiten werden reihum auf Mo-Fr verteilt, die
+# Stunden füllt der Uploader später auf (apply_default_hours).
 
 _DASH = "–—-"   # en-dash, em-dash, Bindestrich, als Datums-Trenner
 _SCHUL_KW = re.compile(r"^\s*(berufsschule|lernfeld|lf\s*\d|schule)\b", re.I)
@@ -625,7 +622,7 @@ def week_monday(text):
 
 
 def _docx_week(mon, eintraege):
-    """Eine Woche im IHK-Schema. Mo-Fr, Taetigkeiten reihum verteilt, Ort per
+    """Eine Woche im IHK-Schema. Mo-Fr, Tätigkeiten reihum verteilt, Ort per
     Stichwort (Berufsschule/Lernfeld -> Schule, sonst Betrieb)."""
     tage = [{"datum": (mon + timedelta(days=i)).isoformat(),
              "anwesenheit": "ANWESEND", "ort": None, "eintraege": []}
@@ -656,7 +653,7 @@ def import_docx(path):
             mon, eintraege = m, []
         elif "Ausbildungswoche" in t:
             continue                              # Header ohne parsbares Datum
-        elif mon and re.search(r"[^\W\d_]", t):   # nur Absaetze mit Buchstaben
+        elif mon and re.search(r"[^\W\d_]", t):   # nur Absätze mit Buchstaben
             eintraege.append(t)
     if mon and eintraege:
         wochen.append(_docx_week(mon, eintraege))
@@ -664,7 +661,7 @@ def import_docx(path):
 
 
 def render_pdfs(page, run_dir, meta, weeks):
-    """Rendert je Woche eine PDF nach run_dir, gibt die Dateigroessen zurueck.
+    """Rendert je Woche eine PDF nach run_dir, gibt die Dateigrößen zurück.
     Geteilt von IHK-Download und Word-Import."""
     qmap = quali_map(meta)
     sizes = []
@@ -700,15 +697,15 @@ def run_docx_import(path, out_dir):
         browser.close()
 
     print(f"\nFertig. JSON und {len(weeks)} PDFs in {run_dir}")
-    print("Jetzt hochladen mit dem Menuepunkt 'upload'.")
+    print("Jetzt hochladen mit dem Menüpunkt 'upload'.")
     if sizes and max(sizes) < 8_000:
         print("WARNUNG: PDFs verdächtig klein, auf Linux fehlen vermutlich System-Schriften.")
         print("Beheben mit:  python -m playwright install --with-deps chromium")
 
 
 def import_docx_interactive():
-    """Menuepunkt Word-Import. Sucht die .docx selbst, laesst bei mehreren
-    Treffern waehlen, importiert ohne Login und ohne Browser."""
+    """Menüpunkt Word-Import. Sucht die .docx selbst, lässt bei mehreren
+    Treffern wählen, importiert ohne Login und ohne Browser."""
     print(BANNER)
     seen, files = set(), []
     for base in (HERE, Path.cwd()):
@@ -732,18 +729,13 @@ def import_docx_interactive():
             if w.isdigit() and 1 <= int(w) <= len(files):
                 path = files[int(w) - 1]
                 break
-            print("  Ungueltige Eingabe, nochmal.")
+            print("  Ungültige Eingabe, nochmal.")
     run_docx_import(path, HERE / "Berichtsheft_Export")
 
 
 def main():
-    ap = argparse.ArgumentParser(description="IHK-Berichtsheft komplett herunterladen")
-    ap.add_argument("--ab", help="Frühestes Datum YYYY-MM-DD (Default: Ausbildungsbeginn)")
-    ap.add_argument("--out", default=str(HERE / "Berichtsheft_Export"), help="Ausgabeordner")
-    args = ap.parse_args()
-
     print(BANNER)
-    out_dir = Path(args.out)
+    out_dir = HERE / "Berichtsheft_Export"
     out_dir.mkdir(parents=True, exist_ok=True)
 
     ensure_chromium()
@@ -759,7 +751,7 @@ def main():
         page = wait_for_login(context, sniff, creds)
         meta = get_meta(page, sniff)
 
-        beginn = parse_date(args.ab) if args.ab else parse_date(meta["zeitraum"][0])
+        beginn = parse_date(meta["zeitraum"][0])
         ende = min(date.today(), parse_date(meta["zeitraum"][1]))
 
         mondays = []
