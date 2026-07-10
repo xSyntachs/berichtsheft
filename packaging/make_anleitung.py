@@ -147,7 +147,25 @@ ausbilder = [
       "ganz normal in apprentio. Diese Seite erklärt, was das Programm tut "
       "und was du einmalig kontrollieren solltest."),
 
-    P("1. Was das Programm macht", h2),
+    P("1. So läuft es ab", h2),
+    ListFlowable([
+        P("Der Azubi installiert das Programm auf seinem Rechner (steht in "
+          "der Azubi-Anleitung).", item),
+        P("Das Programm liest sein Berichtsheft aus, vom IHK-Portal oder aus "
+          "einer Word-Datei.", item),
+        P("Das Programm trägt alle Tätigkeiten in die passenden "
+          "apprentio-Wochen ein. Bis hierhin sind das Entwürfe, du siehst "
+          "noch nichts.", item),
+        P("Der Azubi bestätigt das Einreichen, die Wochen gehen an dich als "
+          "Prüfer.", item),
+        P("Du prüfst die Wochen wie gewohnt in apprentio und nimmst sie an "
+          "oder lehnst sie ab.", item),
+        P("Abgelehnte Wochen korrigiert der Azubi, beim nächsten Lauf reicht "
+          "das Programm sie automatisch erneut ein.", item),
+    ], bulletType="1", bulletFormat="%s.", leftIndent=16, bulletFontSize=10,
+       spaceAfter=6),
+
+    P("2. Was das Programm macht", h2),
     UL("Liest das Berichtsheft des Azubis aus, wahlweise vom IHK-Portal oder "
        "aus einer Word-Datei.",
        "Trägt jede Tätigkeit als Tätigkeitsnachweis in der passenden "
@@ -162,7 +180,7 @@ ausbilder = [
     P("Das Programm speichert keine Passwörter. Es meldet sich mit dem "
       "eigenen apprentio-Zugang des Azubis an.", note),
 
-    P("2. Was du einmalig kontrollieren solltest", h2),
+    P("3. Was du einmalig kontrollieren solltest", h2),
     UL("Der Ausbildungszeitraum in apprentio muss mit dem bei der IHK "
        "übereinstimmen. Beginnt er in apprentio später, fehlen dort die "
        "frühen Wochen und der Azubi sieht die Meldung „X Wochen ohne "
@@ -171,7 +189,7 @@ ausbilder = [
        "Der Azubi braucht einen eigenen apprentio-Zugang, der das "
        "Berichtsheft sehen darf."),
 
-    P("3. Prüfen und annehmen", h2),
+    P("4. Prüfen und annehmen", h2),
     UL("Eingereichte Wochen erscheinen wie gewohnt in apprentio, du nimmst "
        "sie an oder lehnst sie ab.",
        "Solange der Azubi nicht eingereicht hat, siehst du nichts. Die "
@@ -184,7 +202,7 @@ ausbilder = [
       "Einreichen ist endgültig, weder der Azubi noch das Programm können "
       "eine eingereichte Woche zurückziehen.", warn),
 
-    P("4. Gut zu wissen", h2),
+    P("5. Gut zu wissen", h2),
     P("Stunden.", lead),
     P("Liefert das Quell-Heft keine echten Zeiten (typisch beim Word-Heft), "
       "trägt das Programm pauschal 8 Stunden pro Tag ein, verteilt auf die "
