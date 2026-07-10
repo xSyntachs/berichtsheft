@@ -1,6 +1,6 @@
 # Baut alle Release-Artefakte auf GitHub-Runnern, je Plattform nativ, weil
-# PyInstaller nicht cross-kompiliert. Windows ueber build.ps1, Linux und macOS
-# ueber build.sh (das erkennt die Plattform per uname). macOS zweimal, weil
+# PyInstaller nicht cross-kompiliert. Windows über build.ps1, Linux und macOS
+# über build.sh (das erkennt die Plattform per uname). macOS zweimal, weil
 # Apple Silicon und Intel getrennte Binaries brauchen.
 name: build
 on:
@@ -76,7 +76,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release delete latest --yes --cleanup-tag || true
-          gh release create latest artifacts/* Downloader/* \
+          gh release create latest artifacts/* setup/download.bat setup/download.sh setup/Anleitung.pdf \
             --target "$GITHUB_SHA" \
             --title "Berichtsheft-Suite (aktueller Stand)" \
-            --notes "Automatisch gebaut von Commit ${GITHUB_SHA::7}. Zum Installieren das passende install-Skript laden, es zieht das Binary aus diesem Release ohne SmartScreen- oder Gatekeeper-Dialog. Windows install-windows.bat (Demo install-windows-demo.bat), Linux install-linux.sh, macOS install-macos.sh (arm64/intel automatisch), je auch als -demo. Die Binaries liegen hier ebenfalls direkt."
+            --notes "Automatisch gebaut von Commit ${GITHUB_SHA::7}. Endnutzer sehen diese Seite nicht, verteilt wird der SharePoint-Ordner mit download.bat, download.sh und Anleitung.pdf (hier angehängt, zum Aktualisieren des SharePoint-Ordners). Die Skripte ziehen die Binaries aus diesem Release, macOS arm64/intel automatisch, ohne SmartScreen- oder Gatekeeper-Dialog, und starten das Tool direkt."

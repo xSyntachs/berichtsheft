@@ -56,8 +56,7 @@ Zwei eigenständige Skripte, verbunden nur über den Export-Ordner. Der Download
 | [docs/ARCHITEKTUR.md](docs/ARCHITEKTUR.md) | Systemüberblick, Datenfluss, Datenmodell, Build |
 | [docs/ENTSCHEIDUNGEN.md](docs/ENTSCHEIDUNGEN.md) | Architekturentscheidungen mit Begründung und Nutzwertanalyse |
 | [docs/SICHERHEIT.md](docs/SICHERHEIT.md) | Datenschutz, Umgang mit Zugangsdaten, Rechtliches |
-| [docs/README_download.md](docs/README_download.md) | Bedienung und Innenleben des Downloaders |
-| [docs/README_upload.md](docs/README_upload.md) | Bedienung und Innenleben des Uploaders |
+| [setup/Anleitung.pdf](setup/Anleitung.pdf) | Bedienungsanleitung für Endnutzer (Installieren, Download, Upload) |
 | [docs/README_exe.md](docs/README_exe.md) | Nutzung der gebauten EXE, Windows-Warnung, Neubau |
 
 ## Sicherheit
