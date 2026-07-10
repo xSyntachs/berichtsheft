@@ -1,4 +1,5 @@
-"""Erzeugt die Endnutzer-Anleitung setup/Anleitung.pdf (reportlab).
+"""Erzeugt die Endnutzer-Anleitungen setup/Anleitung.pdf (Azubi) und
+setup/Anleitung-Ausbilder.pdf (Prüferseite), beide reportlab.
 Layout nach Louis' Vorlage (Word-Optik): Serifenschrift, blaue Überschriften,
 blaue Hinweis-Boxen, gelbe Achtung-Box, graue Code-Blöcke.
 Nach Textänderungen neu laufen lassen: python packaging/make_anleitung.py"""
@@ -11,7 +12,7 @@ from reportlab.lib.units import mm
 from reportlab.platypus import (ListFlowable, Paragraph, Preformatted,
                                 SimpleDocTemplate, Spacer)
 
-OUT = str(Path(__file__).resolve().parent.parent / "setup" / "Anleitung.pdf")
+SETUP = Path(__file__).resolve().parent.parent / "setup"
 
 BLUE = colors.HexColor("#2E74B5")
 NOTE_BG = colors.HexColor("#EAF3FB")
@@ -54,9 +55,14 @@ def UL(*items):
                         start="•", leftIndent=16, bulletFontSize=10,
                         spaceAfter=6)
 
-story = [
+azubi = [
     P("Berichtsheft-Suite", h1),
     P("Dein IHK-Berichtsheft automatisch nach apprentio bringen", sub),
+    P("Die Berichtsheft-Suite liest dein Berichtsheft aus, entweder direkt "
+      "von der IHK-Seite oder aus einer Word-Datei, und trägt die Einträge "
+      "automatisch wochenweise in apprentio ein. Du sparst dir das manuelle "
+      "Abtippen. Einreichen beim Prüfer bleibt ein bewusster, separater "
+      "Schritt, den du selbst bestätigst."),
 
     P("1. Programm installieren", h2),
     P("Lade download.bat und download.sh herunter."),
@@ -132,7 +138,74 @@ story = [
       "werden sie für ihn erst nach dem Einreichen."),
 ]
 
-SimpleDocTemplate(OUT, pagesize=A4, leftMargin=22*mm, rightMargin=22*mm,
-                  topMargin=18*mm, bottomMargin=18*mm,
-                  title="Berichtsheft-Suite Anleitung").build(story)
-print("geschrieben:", OUT)
+ausbilder = [
+    P("Berichtsheft-Suite", h1),
+    P("Was Ausbilder und Prüfer wissen müssen", sub),
+    P("Die Azubis übertragen ihr IHK-Berichtsheft (oder ihr Word-Heft) mit "
+      "der Berichtsheft-Suite automatisch nach apprentio und reichen die "
+      "Wochen dort bei dir ein. Am Prüfen ändert sich nichts, du arbeitest "
+      "ganz normal in apprentio. Diese Seite erklärt, was das Programm tut "
+      "und was du einmalig kontrollieren solltest."),
+
+    P("1. Was das Programm macht", h2),
+    UL("Liest das Berichtsheft des Azubis aus, wahlweise vom IHK-Portal oder "
+       "aus einer Word-Datei.",
+       "Trägt jede Tätigkeit als Tätigkeitsnachweis in der passenden "
+       "apprentio-Woche ein, mit Datum, Zeitaufwand, Anwesenheit und "
+       "Ausbildungsort.",
+       "Verknüpft Lernziele, wo die IHK-Qualifikation zum apprentio-Lehrplan "
+       "passt, sonst steht der Qualifikationsname im Eintragstext.",
+       "Fragt den Azubi am Ende, ob die Wochen bei dir als Prüfer "
+       "eingereicht werden sollen. Einreichen passiert nie ungefragt.",
+       "Schreibt nur in das Konto des angemeldeten Azubis und legt bei "
+       "wiederholten Läufen nichts doppelt an."),
+    P("Das Programm speichert keine Passwörter. Es meldet sich mit dem "
+      "eigenen apprentio-Zugang des Azubis an.", note),
+
+    P("2. Was du einmalig kontrollieren solltest", h2),
+    UL("Der Ausbildungszeitraum in apprentio muss mit dem bei der IHK "
+       "übereinstimmen. Beginnt er in apprentio später, fehlen dort die "
+       "frühen Wochen und der Azubi sieht die Meldung „X Wochen ohne "
+       "apprentio-Report“. Dann den Zeitraum anpassen und den Azubi das "
+       "Programm erneut laufen lassen.",
+       "Der Azubi braucht einen eigenen apprentio-Zugang, der das "
+       "Berichtsheft sehen darf."),
+
+    P("3. Prüfen und annehmen", h2),
+    UL("Eingereichte Wochen erscheinen wie gewohnt in apprentio, du nimmst "
+       "sie an oder lehnst sie ab.",
+       "Solange der Azubi nicht eingereicht hat, siehst du nichts. Die "
+       "Wochen sind bis dahin Entwürfe.",
+       "Lehnst du eine Woche ab, kann der Azubi sie korrigieren. Beim "
+       "nächsten Lauf reicht das Programm abgelehnte Wochen automatisch "
+       "erneut ein."),
+    P("<b>Achtung, Ablehnen ist der einzige Weg, eine eingereichte Woche "
+      "wieder zu öffnen.</b><br/>"
+      "Einreichen ist endgültig, weder der Azubi noch das Programm können "
+      "eine eingereichte Woche zurückziehen.", warn),
+
+    P("4. Gut zu wissen", h2),
+    P("Stunden.", lead),
+    P("Liefert das Quell-Heft keine echten Zeiten (typisch beim Word-Heft), "
+      "trägt das Programm pauschal 8 Stunden pro Tag ein, verteilt auf die "
+      "Einträge des Tages."),
+    Spacer(1, 2),
+    P("Texte.", lead),
+    P("Die Einträge kommen unverändert aus dem IHK-Heft, inklusive Listen "
+      "und Absätzen."),
+    Spacer(1, 2),
+    P("Wiederholte Läufe.", lead),
+    P("Der Azubi kann das Programm beliebig oft laufen lassen. Vorhandene "
+      "Einträge werden erkannt und übersprungen, es entstehen keine "
+      "Duplikate."),
+]
+
+for fname, title, story in [
+    ("Anleitung.pdf", "Berichtsheft-Suite Anleitung", azubi),
+    ("Anleitung-Ausbilder.pdf", "Berichtsheft-Suite Anleitung für Ausbilder", ausbilder),
+]:
+    out = str(SETUP / fname)
+    SimpleDocTemplate(out, pagesize=A4, leftMargin=22*mm, rightMargin=22*mm,
+                      topMargin=18*mm, bottomMargin=18*mm,
+                      title=title).build(story)
+    print("geschrieben:", out)
