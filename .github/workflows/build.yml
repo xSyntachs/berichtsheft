@@ -76,7 +76,19 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release delete latest --yes --cleanup-tag || true
-          gh release create latest artifacts/* setup/download.bat setup/download.sh setup/Anleitung.pdf setup/Anleitung-Ausbilder.pdf \
-            --target "$GITHUB_SHA" \
-            --title "Berichtsheft-Suite (aktueller Stand)" \
-            --notes "Automatisch gebaut von Commit ${GITHUB_SHA::7}. Endnutzer sehen diese Seite nicht, verteilt wird der SharePoint-Ordner mit download.bat, download.sh und Anleitung.pdf (hier angehängt, zum Aktualisieren des SharePoint-Ordners). Die Skripte ziehen die Binaries aus diesem Release, macOS arm64/intel automatisch, ohne SmartScreen- oder Gatekeeper-Dialog, und starten das Tool direkt."
+          # Die GitHub-API wirft direkt nach delete --cleanup-tag gelegentlich
+          # HTTP 500 aufs Neu-Anlegen desselben Tags. Ohne Retry bliebe das
+          # Repo dann komplett ohne Release und die Download-Skripte liefen
+          # ins Leere, deshalb bis zu drei Versuche mit Pause.
+          ok=""
+          for i in 1 2 3; do
+            if gh release create latest artifacts/* setup/download.bat setup/download.sh setup/Anleitung.pdf setup/Anleitung-Ausbilder.pdf \
+              --target "$GITHUB_SHA" \
+              --title "Berichtsheft-Suite (aktueller Stand)" \
+              --notes "Automatisch gebaut von Commit ${GITHUB_SHA::7}. Endnutzer sehen diese Seite nicht, verteilt wird der SharePoint-Ordner mit download.bat, download.sh und den Anleitungen (hier angehängt, zum Aktualisieren des SharePoint-Ordners). Die Skripte ziehen die Binaries aus diesem Release, macOS arm64/intel automatisch, ohne SmartScreen- oder Gatekeeper-Dialog, und starten das Tool direkt."; then
+              ok=1; break
+            fi
+            echo "Release-Erstellung fehlgeschlagen (Versuch $i), warte 20s ..."
+            sleep 20
+          done
+          [ -n "$ok" ]
