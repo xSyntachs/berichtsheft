@@ -15,3 +15,6 @@ _buildcfg.py
 # Python.
 __pycache__/
 *.pyc
+
+# Playwright-MCP Arbeitsdateien
+.playwright-mcp/
