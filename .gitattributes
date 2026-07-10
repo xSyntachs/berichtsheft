@@ -1,2 +1,4 @@
 # download.sh braucht LF, mit CRLF bricht bash auf Linux und macOS.
 setup/download.sh text eol=lf
+# PDFs sind binär, niemals Zeilenenden anfassen.
+*.pdf binary
