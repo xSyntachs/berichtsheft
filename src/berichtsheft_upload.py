@@ -434,6 +434,7 @@ def main():
         page = browser.new_page()
         wait_for_login(page, tenant, creds)
 
+        my_id = api(page, "GET", "/api/v1/users/me")["body"]["data"]["id"]
         reports = load_reports(page)
         curriculum = load_curriculum(page)
         print(f"{len(reports)} apprentio-Wochen, {len(curriculum)} Lernziele gefunden.")
@@ -477,7 +478,8 @@ def main():
 
         def job_body(j):
             body = {"description": j["text"], "minutes_used": j["minutes"],
-                    "date_accomplished": j["date"], "report_id": j["report_id"]}
+                    "date_accomplished": j["date"], "report_id": j["report_id"],
+                    "user_id": my_id}
             if j["presence"]:
                 body["presence"] = j["presence"]
             if j["location"]:
@@ -505,7 +507,8 @@ def main():
                         api(page, "POST", f"/api/v1/reporting/activities/{aid}/curriculum-entries",
                             {"curriculum_entry_ids": j["cur_ids"]})
                 else:
-                    errors.append((j["date"], r["status"], f"{len(j['text'])} Zeichen: {str(r['body'])[:120]}"))
+                    detail = ((r["body"] or {}).get("error") or {}).get("errors") or r["body"]
+                    errors.append((j["date"], r["status"], f"{len(j['text'])} Zeichen: {str(detail)[:300]}"))
                 progress(i, len(failed), "Retry   ")
 
         print(f"Fertig. {len(todo) - len(errors)} angelegt, {dupes} übersprungen.")
