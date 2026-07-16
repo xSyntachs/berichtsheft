@@ -509,6 +509,10 @@ def main():
                 progress(i, len(failed), "Retry   ")
 
         print(f"Fertig. {len(todo) - len(errors)} angelegt, {dupes} übersprungen.")
+        for d, s, msg in errors[:10]:
+            print(f"FEHLER {d}: HTTP {s} {msg}")
+        if len(errors) > 10:
+            print(f"... und {len(errors) - 10} weitere Fehler.")
 
         print("\nEinreichen ist ENDGÜLTIG, eingereichte Wochen kann nur der "
               "Prüfer per Ablehnen wieder öffnen.")
@@ -521,10 +525,6 @@ def main():
     if skipped_weeks:
         print(f"{len(skipped_weeks)} Wochen ohne apprentio-Report (außerhalb Zeitraum): "
               + ", ".join(skipped_weeks[:5]) + ("..." if len(skipped_weeks) > 5 else ""))
-    for d, s, msg in errors[:10]:
-        print(f"FEHLER {d}: HTTP {s} {msg}")
-    if len(errors) > 10:
-        print(f"... und {len(errors) - 10} weitere Fehler.")
 
 
 if __name__ == "__main__":
