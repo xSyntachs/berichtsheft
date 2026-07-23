@@ -18,3 +18,5 @@ __pycache__/
 
 # Playwright-MCP Arbeitsdateien
 .playwright-mcp/
+
+CLAUDE.md
